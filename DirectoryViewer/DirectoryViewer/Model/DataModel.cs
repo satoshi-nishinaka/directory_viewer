@@ -6,13 +6,13 @@ using DirectoryViewer.Utility;
 
 namespace DirectoryViewer.Model
 {
-    public class DataModel
+    public class SearchCondition
     {
 
-        public List<BrowseDirectoryModel> BrowseDirectories { get; set; }
+        public List<Directory> Directories { get; set; }
 
         [System.Xml.Serialization.XmlIgnore]
-        public List<FileModel> FileList { get; set; }
+        public List<File> FileList { get; set; }
 
         [System.Xml.Serialization.XmlIgnore]
         public string Allow { get; set; }
@@ -33,10 +33,10 @@ namespace DirectoryViewer.Model
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public DataModel()
+        public SearchCondition()
         {
-            BrowseDirectories = new List<BrowseDirectoryModel>();
-            FileList = new List<FileModel>();
+            Directories = new List<Directory>();
+            FileList = new List<File>();
             AllowHistory = new List<string>();
             DenyHistory = new List<string>();
         }
@@ -45,13 +45,13 @@ namespace DirectoryViewer.Model
         /// BrowseDirectoryの追加
         /// すでに存在する場合はFalse, 新しく追加できた場合はTrue
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="directory"></param>
         /// <returns></returns>
-        public bool AddBrowseDirectory(BrowseDirectoryModel model)
+        public bool AddDirectory(Directory directory)
         {
-            if (!BrowseDirectories.Contains(model))
+            if (!Directories.Contains(directory))
             {
-                BrowseDirectories.Add(model);
+                Directories.Add(directory);
                 return true;
             }
 

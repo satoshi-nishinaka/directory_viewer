@@ -7,16 +7,16 @@ using DirectoryViewer.Utility.Image;
 
 namespace DirectoryViewer.Model
 {
-    public class FileModel
+    public class File
     {
         public string FullPath { get; set; }
         public string FileName { get; set; }
         public string Extention { get; set; }
         public long FileSize { get; set; }
         public string DirectoryPath { get; set; }
-        public DateTime CreationDate { get; set; }
-        public DateTime UpdateDate { get; set; }
-        private bool? _isImageFile = null;
+        public DateTime CreatedDate { get; set; }
+        public DateTime UpdatedDate { get; set; }
+        private bool? isImageFile = null;
 
         public ListViewItem ToListViewItem()
         {
@@ -25,8 +25,8 @@ namespace DirectoryViewer.Model
                 {
                     Extention,
                     FileSize.ToString("#,0"),
-                    CreationDate.ToString("yyyy/MM/dd HH:mm:ss"),
-                    UpdateDate.ToString("yyyy/MM/dd HH:mm:ss"),
+                    CreatedDate.ToString("yyyy/MM/dd HH:mm:ss"),
+                    UpdatedDate.ToString("yyyy/MM/dd HH:mm:ss"),
                     DirectoryPath,
                 });
             return listViewItem;
@@ -36,27 +36,27 @@ namespace DirectoryViewer.Model
         {
             get
             {
-                if (_isImageFile == null)
-                    _isImageFile = ImageUtility.IsImageFile(FullPath);
-                return _isImageFile.Value;
+                if (isImageFile == null)
+                    isImageFile = ImageUtility.IsImageFile(FullPath);
+                return isImageFile.Value;
             }
         }
 
         public override bool Equals(object obj)
         {
-            //objがnullか、型が違うときは、等価でない
+            // objがnullか、型が違うときは、等価でない
             if (obj == null || GetType() != obj.GetType())
             {
                 return false;
             }
 
-            var compareInstance = (FileModel) obj;
+            var compareInstance = (File) obj;
             return (DirectoryPath == compareInstance.DirectoryPath && FileName == compareInstance.FileName);
         }
 
         public override int GetHashCode()
         {
-            //XOR
+            // XOR
             return DirectoryPath.GetHashCode() ^ FileName.GetHashCode();
         }
 

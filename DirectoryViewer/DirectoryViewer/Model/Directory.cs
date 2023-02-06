@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DirectoryViewer.Model
 {
-    public class BrowseDirectoryModel
+    public class Directory
     {
         public string DirectoryPath { get; set; }
         public bool IsBrowse { get; set; }
@@ -19,7 +19,7 @@ namespace DirectoryViewer.Model
                 return false;
             }
 
-            var compareInstance = (BrowseDirectoryModel) obj;
+            var compareInstance = (Directory) obj;
             return (DirectoryPath == compareInstance.DirectoryPath);
         }
 

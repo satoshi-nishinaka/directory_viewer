@@ -21,12 +21,12 @@ namespace DirectoryViewer.View
 
         #region メンバ変数
 
-        private DataModel _dataModel = new DataModel();
-        private string _currentImageFilePath = "";
-        private Image _memorizedImage;
-        private string _imagePath;
-        private bool _storeImage = true;
-        private readonly DirectorySearch _directorySearch = new DirectorySearch();
+        private SearchCondition condition = new SearchCondition();
+        private string currentImageFilePath = "";
+        private Image memorizedImage;
+        private string imagePath;
+        private bool isStoreImage = true;
+        private readonly DirectorySearch directorySearch = new DirectorySearch();
 
         //ListViewItemSorterに指定するフィールド
         private ListViewItemComparer listViewItemSorter;
@@ -37,12 +37,12 @@ namespace DirectoryViewer.View
         {
             InitializeComponent();
 
-            _dataModel = FileSerializer.DesirializeDataModel(SettingFilePath);
+            condition = FileSerializer.DesirializeCondition(SettingFilePath);
 
             InitializeForm();
 
             // リストビューのColumnを設定
-            listViewFileList.Columns.AddRange(FileModel.listViewColumnHeaders);
+            listViewFileList.Columns.AddRange(Model.File.listViewColumnHeaders);
             listViewFileList.FullRowSelect = true;
 
             //ListViewItemComparerの作成と設定
@@ -73,7 +73,7 @@ namespace DirectoryViewer.View
         {
             Console.WriteLine(@"form closing");
 
-            FileSerializer.SerializeDataModel(SettingFilePath, _dataModel);
+            FileSerializer.SerializeCondition(SettingFilePath, condition);
         }
 
         private void MainForm_DragDrop(object sender, DragEventArgs e)
@@ -93,10 +93,10 @@ namespace DirectoryViewer.View
             var dropFiles = (string[]) e.Data.GetData(DataFormats.FileDrop);
 
             var needRefresh = false;
-            foreach (var path in dropFiles.Where(Directory.Exists))
+            foreach (var path in dropFiles.Where(System.IO.Directory.Exists))
             {
-                var model = new BrowseDirectoryModel {DirectoryPath = path, IsBrowse = true};
-                if (_dataModel.AddBrowseDirectory(model))
+                var directory = new Model.Directory { DirectoryPath = path, IsBrowse = true};
+                if (condition.AddDirectory(directory))
                 {
                     needRefresh = true;
                 }
@@ -138,7 +138,7 @@ namespace DirectoryViewer.View
             // メンバ変数から削除
             for (var i = selectedIndexies.Count; 0 < i; i--)
             {
-                _dataModel.BrowseDirectories.RemoveAt(checkedListBoxBrowseDirectories.SelectedIndices[i - 1]);
+                condition.Directories.RemoveAt(checkedListBoxBrowseDirectories.SelectedIndices[i - 1]);
             }
 
             RefleshBrowseDirectories();
@@ -177,7 +177,7 @@ namespace DirectoryViewer.View
 #if DEBUG
             Console.WriteLine("checkedListBoxBrowseDirectories_ItemCheck {0} {1} {2}", e.Index, e.CurrentValue, e.NewValue);
 #endif
-            _dataModel.BrowseDirectories[e.Index].IsBrowse = (e.NewValue == CheckState.Checked);
+            condition.Directories[e.Index].IsBrowse = (e.NewValue == CheckState.Checked);
         }
         #endregion
 
@@ -198,29 +198,29 @@ namespace DirectoryViewer.View
             var fileName = selectedItem.Text;
             var directory = selectedItem.SubItems[selectedItem.SubItems.Count - 1].Text;
 
-            var fileModel =
-                _dataModel.FileList.FirstOrDefault(r => r.FileName == fileName && r.DirectoryPath == directory);
-            if(fileModel == null)
+            var file =
+                condition.FileList.FirstOrDefault(r => r.FileName == fileName && r.DirectoryPath == directory);
+            if(file == null)
                 return;
 
-            toolStripStatusLabelFileName.Text = fileModel.FullPath;
+            toolStripStatusLabelFileName.Text = file.FullPath;
             toolStripStatusLabelFileCount.Text = string.Format("{0} / {1}", selectedIndices[0] + 1,
-                                                               _dataModel.FileList.Count);
+                                                               condition.FileList.Count);
 
-            if (!fileModel.IsImageFile)
+            if (!file.IsImageFile)
                 return;
 
             Console.WriteLine(@"画像ファイル？");
-            if (!File.Exists(fileModel.FullPath))
+            if (!System.IO.File.Exists(file.FullPath))
                 return;
 
-            _currentImageFilePath = fileModel.FullPath;
+            currentImageFilePath = file.FullPath;
 
-            var image = Image.FromFile(fileModel.FullPath, true);
+            var image = Image.FromFile(file.FullPath, true);
 
             // ファイルの画像サイズ
             toolStripStatusLabelImageSize.Text = string.Format("{0} x {1}", image.Width, image.Height);
-            toolStripStatusLabelFileSize.Text = fileModel.FileSize.ToString("#,0 バイト");
+            toolStripStatusLabelFileSize.Text = file.FileSize.ToString("#,0 バイト");
             image.Dispose();
 
 
@@ -238,11 +238,11 @@ namespace DirectoryViewer.View
             if (selectedIndicies.Count == 0)
                 return;
 
-            var model = _dataModel.FileList[selectedIndicies[0]];
-            if (!File.Exists(model.FullPath))
+            var file = condition.FileList[selectedIndicies[0]];
+            if (!System.IO.File.Exists(file.FullPath))
                 return;
 
-            Process.Start(model.FullPath);
+            Process.Start(file.FullPath);
         }
 
         /// <summary>
@@ -274,10 +274,10 @@ namespace DirectoryViewer.View
 
         private void pictureBoxPreview_DoubleClick(object sender, EventArgs e)
         {
-            if (!File.Exists(_currentImageFilePath))
+            if (!System.IO.File.Exists(currentImageFilePath))
                 return;
 
-            Process.Start(_currentImageFilePath);
+            Process.Start(currentImageFilePath);
         }
         #endregion
 
@@ -285,12 +285,12 @@ namespace DirectoryViewer.View
 
         private void cmbAllow_TextUpdate(object sender, EventArgs e)
         {
-            _dataModel.Allow = cmbAllow.Text;
+            condition.Allow = cmbAllow.Text;
         }
 
         private void cmbAllow_TextChanged(object sender, EventArgs e)
         {
-            _dataModel.Allow = cmbAllow.Text;
+            condition.Allow = cmbAllow.Text;
         }
 
         private void cmbAllow_KeyDown(object sender, KeyEventArgs e)
@@ -301,12 +301,12 @@ namespace DirectoryViewer.View
 
         private void cmbDeny_TextUpdate(object sender, EventArgs e)
         {
-            _dataModel.Deny = cmbDeny.Text;
+            condition.Deny = cmbDeny.Text;
         }
 
         private void cmbDeny_TextChanged(object sender, EventArgs e)
         {
-            _dataModel.Deny = cmbDeny.Text;
+            condition.Deny = cmbDeny.Text;
         }
 
         private void cmbDeny_KeyDown(object sender, KeyEventArgs e)
@@ -317,7 +317,7 @@ namespace DirectoryViewer.View
 
         private void cbxIgnoreCase_CheckedChanged(object sender, EventArgs e)
         {
-            _dataModel.IgnoreCase = cbxIgnoreCase.Checked;
+            condition.IgnoreCase = cbxIgnoreCase.Checked;
         }
 
         #endregion
@@ -338,11 +338,11 @@ namespace DirectoryViewer.View
             if (result == DialogResult.OK)
             {
                 var directoryPath = textForm.GetText();
-                if (Directory.Exists(directoryPath))
+                if (System.IO.Directory.Exists(directoryPath))
                 {
-                    var model = new BrowseDirectoryModel { DirectoryPath = directoryPath, IsBrowse = true };
+                    var directory = new Model.Directory { DirectoryPath = directoryPath, IsBrowse = true };
 
-                    if (_dataModel.AddBrowseDirectory(model))
+                    if (condition.AddDirectory(directory))
                     {
                         RefleshBrowseDirectories();
                     }
@@ -358,12 +358,12 @@ namespace DirectoryViewer.View
 
         private void toolStripMenuItem_SaveSettings_Click(object sender, EventArgs e)
         {
-            FileSerializer.SerializeDataModel(SettingFilePath, _dataModel);
+            FileSerializer.SerializeCondition(SettingFilePath, condition);
         }
 
         private void toolStripMenuItem_ReloadSettings_Click(object sender, EventArgs e)
         {
-            _dataModel = FileSerializer.DesirializeDataModel(SettingFilePath);
+            condition = FileSerializer.DesirializeCondition(SettingFilePath);
             InitializeForm();
         }
 
@@ -387,8 +387,8 @@ namespace DirectoryViewer.View
             if (selectedIndicies.Count == 0)
                 return;
 
-            var model = _dataModel.FileList[selectedIndicies[0]];
-            Process.Start(model.DirectoryPath);
+            var file = condition.FileList[selectedIndicies[0]];
+            Process.Start(file.DirectoryPath);
         }
 
         /// <summary>
@@ -402,11 +402,11 @@ namespace DirectoryViewer.View
             if (selectedIndicies.Count == 0)
                 return;
 
-            var model = _dataModel.FileList[selectedIndicies[0]];
-            if (!File.Exists(model.FullPath))
+            var file = condition.FileList[selectedIndicies[0]];
+            if (!System.IO.File.Exists(file.FullPath))
                 return;
 
-            Process.Start(model.FullPath);
+            Process.Start(file.FullPath);
         }
 
         #endregion
@@ -421,44 +421,44 @@ namespace DirectoryViewer.View
             RefleshBrowseDirectories();
 
             cmbAllow.Items.Clear();
-            if (_dataModel.AllowHistory != null)
+            if (condition.AllowHistory != null)
             {
-                foreach (var text in _dataModel.AllowHistory)
+                foreach (var text in condition.AllowHistory)
                 {
                     cmbAllow.Items.Add(text);
                 }
-                var allow = _dataModel.AllowHistory.FirstOrDefault();
+                var allow = condition.AllowHistory.FirstOrDefault();
                 if (allow != null)
                     cmbAllow.Text = allow;
             }
 
             cmbDeny.Items.Clear();
-            if (_dataModel.DenyHistory != null)
+            if (condition.DenyHistory != null)
             {
-                foreach (var text in _dataModel.DenyHistory)
+                foreach (var text in condition.DenyHistory)
                 {
                     cmbDeny.Items.Add(text);
                 }
-                var deny = _dataModel.DenyHistory.FirstOrDefault();
+                var deny = condition.DenyHistory.FirstOrDefault();
                 if (deny != null)
                     cmbDeny.Text = deny;
             }
 
-            cbxIgnoreCase.Checked = _dataModel.IgnoreCase;
+            cbxIgnoreCase.Checked = condition.IgnoreCase;
 
             cmbAllowCondition.Items.Clear();
             foreach (var text in FileNameFilter.filterCase)
             {
                 cmbAllowCondition.Items.Add(text);
             }
-            cmbAllowCondition.Text = FileNameFilter.filterCase[(int) _dataModel.AllowFilter];
+            cmbAllowCondition.Text = FileNameFilter.filterCase[(int) condition.AllowFilter];
 
             cmbDenyCondition.Items.Clear();
             foreach (var text in FileNameFilter.filterCase)
             {
                 cmbDenyCondition.Items.Add(text);
             }
-            cmbDenyCondition.Text = FileNameFilter.filterCase[(int) _dataModel.DenyFilter];
+            cmbDenyCondition.Text = FileNameFilter.filterCase[(int) condition.DenyFilter];
         }
 
         /// <summary>
@@ -467,7 +467,7 @@ namespace DirectoryViewer.View
         private void RefleshBrowseDirectories()
         {
             checkedListBoxBrowseDirectories.Items.Clear();
-            foreach (var item in _dataModel.BrowseDirectories)
+            foreach (var item in condition.Directories)
             {
                 checkedListBoxBrowseDirectories.Items.Add(item.DirectoryPath, item.IsBrowse);
             }
@@ -479,29 +479,29 @@ namespace DirectoryViewer.View
         /// <param name="g"></param>
         private void DrawImage(Graphics g)
         {
-            if (File.Exists(_currentImageFilePath) == false)
+            if (System.IO.File.Exists(currentImageFilePath) == false)
             {
                 //// ファイルが存在しない場合
-                if (string.IsNullOrEmpty(_currentImageFilePath))
+                if (string.IsNullOrEmpty(currentImageFilePath))
                 {
                     return;
                 }
             }
             try
             {
-                if (_storeImage == true && (_memorizedImage == null || _currentImageFilePath != _imagePath))
+                if (isStoreImage == true && (memorizedImage == null || currentImageFilePath != imagePath))
                 {
-                    if (_memorizedImage != null)
+                    if (memorizedImage != null)
                     {
                         // 画像オブジェクトを開放して新しい画像を読み込み
-                        _memorizedImage.Dispose();
-                        _memorizedImage = null;
+                        memorizedImage.Dispose();
+                        memorizedImage = null;
                     }
-                    _memorizedImage = Image.FromFile(_currentImageFilePath, true);
-                    _imagePath = _currentImageFilePath;
+                    memorizedImage = Image.FromFile(currentImageFilePath, true);
+                    imagePath = currentImageFilePath;
 
                 }
-                var image = (_memorizedImage != null ? _memorizedImage : Image.FromFile(_currentImageFilePath, true));
+                var image = (memorizedImage != null ? memorizedImage : Image.FromFile(currentImageFilePath, true));
 
                 // フォームのサイズに合わせる場合
                 var nImageWidth = image.Width;
@@ -526,9 +526,9 @@ namespace DirectoryViewer.View
                 }
 
                 // 画像オブジェクトを開放
-                if (_storeImage == false && _memorizedImage != null)
+                if (isStoreImage == false && memorizedImage != null)
                 {
-                    _memorizedImage.Dispose();
+                    memorizedImage.Dispose();
                 }
 
             }
@@ -553,9 +553,9 @@ namespace DirectoryViewer.View
                 return;
 
             var directoryPath = folderBrowserDialog.SelectedPath;
-            var model = new BrowseDirectoryModel {DirectoryPath = directoryPath, IsBrowse = true};
+            var directory = new Model.Directory { DirectoryPath = directoryPath, IsBrowse = true};
 
-            if (_dataModel.AddBrowseDirectory(model))
+            if (condition.AddDirectory(directory))
             {
                 RefleshBrowseDirectories();
             }
@@ -563,15 +563,15 @@ namespace DirectoryViewer.View
 
         private void SearchFiles()
         {
-            _dataModel.AddAllowHistory(cmbAllow.Text);
-            _dataModel.AddDenyHistory(cmbDeny.Text);
-            _dataModel.AllowFilter = (FileNameFilter.FilterCase) cmbAllowCondition.SelectedIndex;
-            _dataModel.DenyFilter = (FileNameFilter.FilterCase) cmbDenyCondition.SelectedIndex;
+            condition.AddAllowHistory(cmbAllow.Text);
+            condition.AddDenyHistory(cmbDeny.Text);
+            condition.AllowFilter = (FileNameFilter.FilterCase) cmbAllowCondition.SelectedIndex;
+            condition.DenyFilter = (FileNameFilter.FilterCase) cmbDenyCondition.SelectedIndex;
 
             // 強制的に再検索処理(ディレクトリが同じ時のみ使用する)
             var forceSearch = false;
 
-            if (_directorySearch.IsSameCondition(_dataModel) && 0 < listViewFileList.Items.Count)
+            if (directorySearch.IsSameCondition(condition) && 0 < listViewFileList.Items.Count)
             {
                 // 検索条件が同じ場合、再検索を行うか確認
                 var result = MessageBox.Show(
@@ -586,19 +586,19 @@ namespace DirectoryViewer.View
                 forceSearch = true;
             }
             // データ初期化
-            _dataModel.FileList = new List<FileModel>();
+            condition.FileList = new List<Model.File>();
 
             var startTime = new TimeSpan(DateTime.Now.Ticks);
 
-            var comparison = _dataModel.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+            var comparison = condition.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
             var previousCursor = Cursor;
             Cursor = Cursors.WaitCursor;
 
-            _directorySearch.Search(_dataModel, comparison, forceSearch);
-            _dataModel.FileList = _directorySearch.GetFiles();
+            directorySearch.Search(condition, comparison, forceSearch);
+            condition.FileList = directorySearch.GetFiles();
 
             listViewFileList.Items.Clear();
-            listViewFileList.Items.AddRange(_dataModel.FileList.Select(r => r.ToListViewItem()).ToArray());
+            listViewFileList.Items.AddRange(condition.FileList.Select(r => r.ToListViewItem()).ToArray());
 
             Cursor = previousCursor;
 
@@ -606,7 +606,7 @@ namespace DirectoryViewer.View
 
             MessageBox.Show(
                 string.Format("検索終了\r\n{0} 秒\r\n\r\nファイル数: {1}", (endTime.Minutes*60 + endTime.Seconds),
-                              _dataModel.FileList.Count),
+                              condition.FileList.Count),
                 @"ファイル検索",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);

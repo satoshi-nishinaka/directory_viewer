@@ -8,16 +8,16 @@ namespace DirectoryViewer.Utility.IO {
     /// http://dobon.net/vb/dotnet/file/xmlserializer.html
     /// </summary>
     public class FileSerializer {
-        public static void SerializeDataModel(string filePath, DataModel dataModel) {
+        public static void SerializeCondition(string filePath, SearchCondition condition) {
 
             try {
                 //XmlSerializerオブジェクトを作成
                 //オブジェクトの型を指定する
-                var serializer = new XmlSerializer(typeof(DataModel));
+                var serializer = new XmlSerializer(typeof(SearchCondition));
                 //書き込むファイルを開く
                 var fs = new FileStream(filePath, FileMode.Create);
                 //シリアル化し、XMLファイルに保存する
-                serializer.Serialize(fs, dataModel);
+                serializer.Serialize(fs, condition);
                 //ファイルを閉じる
                 fs.Close();
             } catch (Exception e) {
@@ -25,20 +25,20 @@ namespace DirectoryViewer.Utility.IO {
             }
         }
 
-        public static DataModel DesirializeDataModel(string filePath) {
+        public static SearchCondition DesirializeCondition(string filePath) {
 
             try {
                 //保存した内容を復元する
-                var serializer = new XmlSerializer(typeof(DataModel));
+                var serializer = new XmlSerializer(typeof(SearchCondition));
                 var fs = new FileStream(filePath, FileMode.Open);
-                var dataModel = (DataModel)serializer.Deserialize(fs);
+                var condition = (SearchCondition)serializer.Deserialize(fs);
                 fs.Close();
 
-                return dataModel;
+                return condition;
 
             } catch (Exception e) {
                 Console.WriteLine(e);
-                return new DataModel();
+                return new SearchCondition();
             }
         }
     }

@@ -26,10 +26,10 @@ namespace DirectoryViewer.Controll
             DateTime
         };
 
-        private int _column;
-        private SortOrder _order;
-        private ComparerMode _mode;
-        private ComparerMode[] _columnModes;
+        private int column;
+        private SortOrder sortOrder;
+        private ComparerMode compareMode;
+        private ComparerMode[] compareModes;
 
         /// <summary>
         /// 並び替えるListView列の番号
@@ -37,17 +37,17 @@ namespace DirectoryViewer.Controll
         public int Column {
             set {
                 //現在と同じ列の時は、昇順降順を切り替える
-                if (_column == value) {
-                    if (_order == SortOrder.Ascending) {
-                        _order = SortOrder.Descending;
-                    } else if (_order == SortOrder.Descending) {
-                        _order = SortOrder.Ascending;
+                if (column == value) {
+                    if (sortOrder == SortOrder.Ascending) {
+                        sortOrder = SortOrder.Descending;
+                    } else if (sortOrder == SortOrder.Descending) {
+                        sortOrder = SortOrder.Ascending;
                     }
                 }
-                _column = value;
+                column = value;
             }
             get {
-                return _column;
+                return column;
             }
         }
         /// <summary>
@@ -55,10 +55,10 @@ namespace DirectoryViewer.Controll
         /// </summary>
         public SortOrder Order {
             set {
-                _order = value;
+                sortOrder = value;
             }
             get {
-                return _order;
+                return sortOrder;
             }
         }
         /// <summary>
@@ -66,10 +66,10 @@ namespace DirectoryViewer.Controll
         /// </summary>
         public ComparerMode Mode {
             set {
-                _mode = value;
+                compareMode = value;
             }
             get {
-                return _mode;
+                return compareMode;
             }
         }
         /// <summary>
@@ -77,7 +77,7 @@ namespace DirectoryViewer.Controll
         /// </summary>
         public ComparerMode[] ColumnModes {
             set {
-                _columnModes = value;
+                compareModes = value;
             }
         }
 
@@ -89,20 +89,20 @@ namespace DirectoryViewer.Controll
         /// <param name="cmod">並び替えの方法</param>
         public ListViewItemComparer(
             int col, SortOrder ord, ComparerMode cmod) {
-            _column = col;
-            _order = ord;
-            _mode = cmod;
+            column = col;
+            sortOrder = ord;
+            compareMode = cmod;
             }
         public ListViewItemComparer() {
-            _column = 0;
-            _order = SortOrder.Ascending;
-            _mode = ComparerMode.String;
+            column = 0;
+            sortOrder = SortOrder.Ascending;
+            compareMode = ComparerMode.String;
         }
 
         //xがyより小さいときはマイナスの数、大きいときはプラスの数、
         //同じときは0を返す
         public int Compare(object x, object y) {
-            if (_order == SortOrder.None) {
+            if (sortOrder == SortOrder.None) {
                 //並び替えない時
                 return 0;
             }
@@ -113,34 +113,34 @@ namespace DirectoryViewer.Controll
             var itemy = (ListViewItem)y;
 
             //並べ替えの方法を決定
-            if (_columnModes != null && _columnModes.Length > _column) {
-                _mode = _columnModes[_column];
+            if (compareModes != null && compareModes.Length > column) {
+                compareMode = compareModes[column];
             }
 
             //並び替えの方法別に、xとyを比較する
-            switch (_mode) {
+            switch (compareMode) {
                 case ComparerMode.String:
                     //文字列をとして比較
-                    result = string.Compare(itemx.SubItems[_column].Text,
-                                            itemy.SubItems[_column].Text, StringComparison.Ordinal);
+                    result = string.Compare(itemx.SubItems[column].Text,
+                                            itemy.SubItems[column].Text, StringComparison.Ordinal);
                     break;
                 case ComparerMode.Integer:
                     //Int32に変換して比較
                     //.NET Framework 2.0からは、TryParseメソッドを使うこともできる
-                    result = int.Parse(itemx.SubItems[_column].Text.Replace(",", "")).CompareTo(
-                        int.Parse(itemy.SubItems[_column].Text.Replace(",", "")));
+                    result = int.Parse(itemx.SubItems[column].Text.Replace(",", "")).CompareTo(
+                        int.Parse(itemy.SubItems[column].Text.Replace(",", "")));
                     break;
                 case ComparerMode.DateTime:
                     //DateTimeに変換して比較
                     //.NET Framework 2.0からは、TryParseメソッドを使うこともできる
                     result = DateTime.Compare(
-                        DateTime.Parse(itemx.SubItems[_column].Text),
-                        DateTime.Parse(itemy.SubItems[_column].Text));
+                        DateTime.Parse(itemx.SubItems[column].Text),
+                        DateTime.Parse(itemy.SubItems[column].Text));
                     break;
             }
 
             //降順の時は結果を+-逆にする
-            if (_order == SortOrder.Descending) {
+            if (sortOrder == SortOrder.Descending) {
                 result = -result;
             }
 

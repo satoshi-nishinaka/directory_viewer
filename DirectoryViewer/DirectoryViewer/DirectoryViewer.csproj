@@ -46,11 +46,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controll\ListViewItemComparer.cs" />
-    <Compile Include="Controll\DirectorySearch.cs" />
+    <Compile Include="Controller\ListViewItemComparer.cs" />
+    <Compile Include="Controller\DirectorySearch.cs" />
     <Compile Include="Model\BrowseDirectoryModel.cs" />
     <Compile Include="Model\DataModel.cs" />
-    <Compile Include="Model\FileModel.cs" />
+    <Compile Include="Model\File.cs" />
     <Compile Include="Utility\FileNameFilter.cs" />
     <Compile Include="Utility\Image\ImageUtility.cs" />
     <Compile Include="Utility\IO\FileSerializer.cs" />
