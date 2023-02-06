@@ -88,7 +88,7 @@ namespace DirectoryViewer.Controll
             foreach (var directory in directories)
             // ReSharper restore LoopCanBeConvertedToQuery
             {
-                var isMatch = condition.Directories.Any(condition => condition.DirectoryPath == directory);
+                var isMatch = condition.Directories.Any(_condition => _condition.DirectoryPath == directory);
                 if (!isMatch)
                     return false;
             }

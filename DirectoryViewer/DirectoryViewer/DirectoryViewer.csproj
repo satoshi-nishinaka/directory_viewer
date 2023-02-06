@@ -48,8 +48,7 @@
   <ItemGroup>
     <Compile Include="Controller\ListViewItemComparer.cs" />
     <Compile Include="Controller\DirectorySearch.cs" />
-    <Compile Include="Model\BrowseDirectoryModel.cs" />
-    <Compile Include="Model\DataModel.cs" />
+    <Compile Include="Model\Directory.cs" />
     <Compile Include="Model\File.cs" />
     <Compile Include="Utility\FileNameFilter.cs" />
     <Compile Include="Utility\Image\ImageUtility.cs" />
@@ -93,6 +92,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Model\SearchCondition.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
