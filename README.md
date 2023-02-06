@@ -1,0 +1,2 @@
+# directory_viewer
+昔Windowsで作ったやつを勉強の意味も兼ねてメンテしていきたい
